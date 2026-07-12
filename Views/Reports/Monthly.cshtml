@@ -1,0 +1,85 @@
+@model MonthlyReportViewModel
+@{
+    ViewData["Title"] = "Monthly Report";
+    var prevMonth = Model.Month == 1 ? 12 : Model.Month - 1;
+    var prevYear = Model.Month == 1 ? Model.Year - 1 : Model.Year;
+    var nextMonth = Model.Month == 12 ? 1 : Model.Month + 1;
+    var nextYear = Model.Month == 12 ? Model.Year + 1 : Model.Year;
+    var firstOfMonth = new DateTime(Model.Year, Model.Month, 1);
+    int leadingBlanks = (int)firstOfMonth.DayOfWeek;
+}
+
+<div class="date-nav">
+    <a class="btn-small" asp-action="Monthly" asp-route-year="@prevYear" asp-route-month="@prevMonth">&larr; Prev</a>
+    <h1 style="margin:0">@Model.MonthName</h1>
+    <a class="btn-small" asp-action="Monthly" asp-route-year="@nextYear" asp-route-month="@nextMonth">Next &rarr;</a>
+    <a class="btn-small" asp-controller="TimeBoxEntries" asp-action="Index">Daily View</a>
+</div>
+
+<div class="summary-card">
+    <div><span class="label">Days Logged</span><span class="value">@Model.DaysLoggedCount</span></div>
+    <div><span class="label">Avg. Completion</span><span class="value">@Model.AverageCompletion%</span></div>
+    <div><span class="label">Good Days (&ge;@MonthlyReportViewModel.ConsistencyThreshold%)</span><span class="value">@Model.DaysAtOrAboveThreshold</span></div>
+    <div><span class="label">Current Streak</span><span class="value">@Model.CurrentStreak 🔥</span></div>
+    <div><span class="label">Best Streak</span><span class="value">@Model.BestStreak</span></div>
+</div>
+
+<h2 class="section-title">Consistency Calendar</h2>
+<div class="calendar-grid">
+    @foreach (var dow in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+    {
+        <div class="calendar-dow">@dow</div>
+    }
+    @for (int i = 0; i < leadingBlanks; i++)
+    {
+        <div class="calendar-cell calendar-blank"></div>
+    }
+    @foreach (var day in Model.Days)
+    {
+        string cellClass = !day.HasEntries ? "cal-empty" : day.MeetsThreshold ? "cal-good" : day.NetPercentage > 0 ? "cal-partial" : "cal-none";
+        <a class="calendar-cell @cellClass"
+           asp-controller="TimeBoxEntries" asp-action="Index" asp-route-date="@day.Date.ToString("yyyy-MM-dd")"
+           title="@day.NetPercentage% complete">
+            <span class="cal-daynum">@day.Date.Day</span>
+            @if (day.HasEntries)
+            {
+                <span class="cal-pct">@day.NetPercentage%</span>
+            }
+        </a>
+    }
+</div>
+<div class="calendar-legend">
+    <span><i class="legend-swatch cal-good"></i> &ge;@MonthlyReportViewModel.ConsistencyThreshold%</span>
+    <span><i class="legend-swatch cal-partial"></i> Partial</span>
+    <span><i class="legend-swatch cal-none"></i> 0% / over-penalized</span>
+    <span><i class="legend-swatch cal-empty"></i> No entries</span>
+</div>
+
+<h2 class="section-title">Time by Category</h2>
+@if (!Model.CategoryBreakdown.Any())
+{
+    <p class="empty-state">No entries logged this month yet.</p>
+}
+else
+{
+    double maxHours = Model.CategoryBreakdown.Max(c => c.TotalHours);
+    <div class="category-bars">
+        @foreach (var c in Model.CategoryBreakdown)
+        {
+            double widthPct = maxHours <= 0 ? 0 : (c.TotalHours / maxHours) * 100;
+            <div class="category-bar-row">
+                <span class="category-bar-label">@c.Name</span>
+                <div class="category-bar-track">
+                    <div class="category-bar-fill" style="width:@widthPct%; background:@c.ColorHex"></div>
+                </div>
+                <span class="category-bar-value @(c.IsNegative ? "penalty-value" : "")">@(c.IsNegative ? "-" : "")@c.TotalHours.ToString("0.##")h</span>
+            </div>
+        }
+    </div>
+}
+
+<div class="summary-card" style="margin-top:20px">
+    <div><span class="label">Total Planned</span><span class="value">@Model.TotalPlannedHours.ToString("0.##")h</span></div>
+    <div><span class="label">Total Achieved</span><span class="value">@Model.TotalActualHours.ToString("0.##")h</span></div>
+    <div><span class="label">Total Penalty</span><span class="value penalty-value">-@Model.TotalPenaltyHours.ToString("0.##")h</span></div>
+</div>

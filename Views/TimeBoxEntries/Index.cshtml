@@ -1,0 +1,103 @@
+@model IEnumerable<TimeBoxEntry>
+@{
+    ViewData["Title"] = "Daily Tracker";
+    DateTime selectedDate = ViewBag.SelectedDate;
+    double plannedTotal = ViewBag.PlannedTotal;
+    double actualTotal = ViewBag.ActualTotal;
+    double penaltyTotal = ViewBag.PenaltyTotal;
+    double netPct = ViewBag.NetPct;
+    bool celebrate = ViewBag.CelebrateToday;
+}
+
+<div class="date-nav">
+    <a class="btn-small" href="@Url.Action("Index", new { date = selectedDate.AddDays(-1).ToString("yyyy-MM-dd") })">&larr; Prev</a>
+    <form asp-action="Index" method="get" class="date-form">
+        <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+    </form>
+    <a class="btn-small" href="@Url.Action("Index", new { date = selectedDate.AddDays(1).ToString("yyyy-MM-dd") })">Next &rarr;</a>
+    <a class="btn-small" asp-controller="Reports" asp-action="Monthly">Monthly Report</a>
+</div>
+
+<h1>@selectedDate.ToString("dddd, MMM d, yyyy")</h1>
+
+<div class="summary-card">
+    <div><span class="label">Planned</span><span class="value">@plannedTotal.ToString("0.##")h</span></div>
+    <div><span class="label">Achieved</span><span class="value">@actualTotal.ToString("0.##")h</span></div>
+    <div><span class="label">Penalty</span><span class="value penalty-value">-@penaltyTotal.ToString("0.##")h</span></div>
+    <div><span class="label">Net Completion</span><span class="value @(netPct >= 100 ? "value-success" : "")">@netPct%</span></div>
+</div>
+
+@if (!Model.Any())
+{
+    <p class="empty-state">No entries for this day yet. <a asp-action="Create">Add your first entry &rarr;</a></p>
+}
+else
+{
+    <table class="tracker-table entries-table">
+        <thead>
+            <tr>
+                <th>Time Slot</th>
+                <th>Task</th>
+                <th>Category</th>
+                <th>Planned</th>
+                <th>Actual</th>
+                <th>Completion</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Model)
+            {
+                bool isNegative = entry.Category?.Type == CategoryType.Negative;
+                <tr class="@(isNegative ? "row-negative" : "")">
+                    <td>
+                        @if (entry.PlannedStart.HasValue && entry.PlannedEnd.HasValue)
+                        {
+                            <span class="time-slot-line">@entry.PlannedStart.Value.ToClockString() &ndash; @entry.PlannedEnd.Value.ToClockString()</span>
+                        }
+                        else
+                        {
+                            @:-
+                        }
+                    </td>
+                    <td>
+                        <div class="task-cell">
+                            <span class="task-name">@entry.TaskName</span>
+                            @if (entry.SubEntries.Any())
+                            {
+                                <a asp-action="Details" asp-route-id="@entry.Id" class="sub-count-badge">@entry.CompletedSubEntryCount/@entry.TotalSubEntryCount done</a>
+                            }
+                        </div>
+                    </td>
+                    <td><span class="category-badge" style="background:@entry.Category?.ColorHex">@entry.Category?.Name</span></td>
+                    <td>@(isNegative ? "-" : entry.PlannedHours.ToString("0.##") + "h")</td>
+                    <td class="@(isNegative ? "penalty-value" : "")">@(isNegative ? "-" : "")@((isNegative ? entry.ActualHours : entry.EffectiveActualHours).ToString("0.##"))h</td>
+                    <td>
+                        @if (!isNegative)
+                        {
+                            <span class="time-slot-line"><span class="progress-bar"><span class="progress-fill" style="width:@entry.CompletionPercentage%"></span></span>@entry.CompletionPercentage%</span>
+                        }
+                        else
+                        {
+                            @:-
+                        }
+                    </td>
+                    <td><span class="status-badge status-@entry.Status">@entry.Status</span></td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@entry.Id" class="action-btn action-edit">Edit</a>
+                        <a asp-action="Details" asp-route-id="@entry.Id" class="action-btn action-details">Details</a>
+                        <a asp-action="Delete" asp-route-id="@entry.Id" class="action-btn action-delete">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (celebrate)
+{
+    <div id="celebration-overlay"></div>
+    <script src="~/js/confetti.js"></script>
+    <script>celebrateDay();</script>
+}

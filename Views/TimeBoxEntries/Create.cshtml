@@ -1,0 +1,112 @@
+@model ToDoListTracker.ViewModels.TimeBoxEntryFormViewModel
+@{
+    ViewData["Title"] = "New Entry";
+}
+
+<h1>New Entry</h1>
+
+<form asp-action="Create" method="post" id="entryForm">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Date"></label>
+        <input asp-for="Date" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CategoryId">Category</label>
+        <select asp-for="CategoryId" asp-items="Model.Categories" id="categorySelect" class="form-control">
+            <option value="">-- choose a category --</option>
+        </select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TaskName">Task / What happened</label>
+        <input asp-for="TaskName" class="form-control" placeholder="e.g. Fix TypeLoadException in AML module" />
+        <span asp-validation-for="TaskName" class="text-danger"></span>
+    </div>
+
+    <div id="positiveFields">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Planned Start</label>
+                <div class="time-picker">
+                    <select asp-for="StartHour" class="form-control">
+                        @for (int h = 1; h <= 12; h++) { <option value="@h">@h</option> }
+                    </select>
+                    <select asp-for="StartMinute" class="form-control">
+                        @foreach (var min in new[] { 0, 15, 30, 45 }) { <option value="@min">@min.ToString("00")</option> }
+                    </select>
+                    <select asp-for="StartAmPm" class="form-control">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Planned End</label>
+                <div class="time-picker">
+                    <select asp-for="EndHour" class="form-control">
+                        @for (int h = 1; h <= 12; h++) { <option value="@h">@h</option> }
+                    </select>
+                    <select asp-for="EndMinute" class="form-control">
+                        @foreach (var min in new[] { 0, 15, 30, 45 }) { <option value="@min">@min.ToString("00")</option> }
+                    </select>
+                    <select asp-for="EndAmPm" class="form-control">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <span asp-validation-for="EndHour" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ActualHours"></label>
+            <input asp-for="ActualHours" class="form-control" step="0.25" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Status"></label>
+            <select asp-for="Status" asp-items="Html.GetEnumSelectList<ToDoListTracker.Models.EntryStatus>()" class="form-control"></select>
+        </div>
+    </div>
+
+    <div id="negativeFields" style="display:none">
+        <div class="negative-warning">This counts against today's score.</div>
+        <div class="form-group">
+            <label asp-for="NegativeHours"></label>
+            <input asp-for="NegativeHours" class="form-control" step="0.25" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn-primary">Save Entry</button>
+    <a asp-action="Index" class="btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <script>
+        const categoryTypes = {
+            @foreach (var c in Model.CategoryLookup)
+            {
+                @: @(c.Id): "@c.Type",
+            }
+        };
+
+        function toggleFields() {
+            const select = document.getElementById('categorySelect');
+            const isNegative = categoryTypes[select.value] === "Negative";
+            document.getElementById('positiveFields').style.display = isNegative ? 'none' : 'block';
+            document.getElementById('negativeFields').style.display = isNegative ? 'block' : 'none';
+        }
+
+        document.getElementById('categorySelect').addEventListener('change', toggleFields);
+        toggleFields();
+    </script>
+}

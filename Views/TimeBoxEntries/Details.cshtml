@@ -1,0 +1,108 @@
+@model TimeBoxEntry
+@{
+    ViewData["Title"] = "Entry Details";
+    bool isNegative = Model.Category?.Type == CategoryType.Negative;
+}
+
+<h1>@Model.TaskName</h1>
+
+<dl class="detail-list">
+    <dt>Date</dt>
+    <dd>@Model.Date.ToString("dddd, MMM d, yyyy")</dd>
+
+    <dt>Category</dt>
+    <dd><span class="category-badge" style="background:@Model.Category?.ColorHex">@Model.Category?.Name</span></dd>
+
+    @if (!isNegative)
+    {
+        <dt>Planned Slot</dt>
+        <dd>@Model.PlannedStart.ToClockString() &ndash; @Model.PlannedEnd.ToClockString() (@Model.PlannedHours.ToString("0.##")h)</dd>
+        <dt>Actual Hours @(Model.SubEntries.Any() ? $"({Model.CompletedSubEntryCount}/{Model.TotalSubEntryCount} sub-tasks done)" : "")</dt>
+        <dd>@Model.EffectiveActualHours.ToString("0.##")h</dd>
+        <dt>Completion</dt>
+        <dd>@Model.CompletionPercentage%</dd>
+    }
+    else
+    {
+        <dt>Hours Spent</dt>
+        <dd class="penalty-value">-@Model.ActualHours.ToString("0.##")h</dd>
+    }
+
+    <dt>Status</dt>
+    <dd><span class="status-badge status-@Model.Status">@Model.Status</span></dd>
+
+    <dt>Notes</dt>
+    <dd>@(Model.Notes ?? "-")</dd>
+</dl>
+
+@if (!isNegative)
+{
+    <h2 class="section-title">Sub-tasks within this block</h2>
+    <p class="hint-text" style="margin-bottom:16px;">
+        Break this block into individual tasks. Check one off once it's actually done — only checked
+        sub-tasks count toward "Actual Hours" above, so leaving one unchecked (e.g. a skipped prayer)
+        correctly keeps the block from reading as 100% complete.
+    </p>
+
+    @if (Model.SubEntries.Any())
+    {
+        <div class="sub-task-list">
+            @foreach (var sub in Model.SubEntries)
+            {
+                <div class="sub-task-row @(sub.IsCompleted ? "sub-task-done" : "")">
+                    <form asp-controller="SubEntries" asp-action="Toggle" asp-route-id="@sub.Id" method="post" class="sub-task-checkbox-form">
+                        <button type="submit" class="sub-task-checkbox" title="Toggle completed" aria-label="Toggle completed">
+                            @if (sub.IsCompleted)
+                            {
+                                @:&#10003;
+                            }
+                        </button>
+                    </form>
+                    <div class="sub-task-info">
+                        <span class="sub-task-name">@sub.TaskName</span>
+                        @if (!string.IsNullOrEmpty(sub.Notes))
+                        {
+                            <span class="sub-task-notes">@sub.Notes</span>
+                        }
+                    </div>
+                    <span class="sub-task-hours">@sub.ActualHours.ToString("0.##")h</span>
+                    <form asp-controller="SubEntries" asp-action="Delete" asp-route-id="@sub.Id" method="post" onsubmit="return confirm('Delete this sub-task?');">
+                        <button type="submit" class="action-btn action-delete">Delete</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="empty-state" style="margin-bottom:16px;">No sub-tasks logged yet for this block.</p>
+    }
+
+    <form asp-controller="SubEntries" asp-action="Create" method="post" class="sub-entry-form">
+        <input type="hidden" name="timeBoxEntryId" value="@Model.Id" />
+        <div class="form-row">
+            <div class="form-group">
+                <label>Task</label>
+                <input type="text" name="taskName" class="form-control" placeholder="e.g. Pray Dhuhr" required />
+            </div>
+            <div class="form-group" style="max-width:120px;">
+                <label>Hours</label>
+                <input type="number" name="actualHours" class="form-control" step="0.25" min="0" max="24" value="0.5" required />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Notes (optional)</label>
+            <input type="text" name="notes" class="form-control" placeholder="Anything worth remembering" />
+        </div>
+        <label class="checkbox-label">
+            <input type="checkbox" name="isCompleted" value="true" />
+            Already done (check this off now)
+        </label>
+        <button type="submit" class="btn-primary" style="margin-top:14px;">+ Add Sub-task</button>
+    </form>
+}
+
+<div style="margin-top:24px;">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-primary">Edit</a>
+    <a asp-action="Index" class="btn-secondary">Back to list</a>
+</div>

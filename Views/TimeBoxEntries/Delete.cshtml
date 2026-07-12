@@ -1,0 +1,23 @@
+@model TimeBoxEntry
+@{
+    ViewData["Title"] = "Delete Entry";
+}
+
+<h1>Delete Entry?</h1>
+
+<p>Are you sure you want to delete this entry? This action cannot be undone.</p>
+
+<dl class="detail-list">
+    <dt>Task</dt>
+    <dd>@Model.TaskName</dd>
+    <dt>Category</dt>
+    <dd><span class="category-badge" style="background:@Model.Category?.ColorHex">@Model.Category?.Name</span></dd>
+    <dt>Date</dt>
+    <dd>@Model.Date.ToString("MMM d, yyyy")</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn-danger">Yes, Delete</button>
+    <a asp-action="Index" class="btn-secondary">Cancel</a>
+</form>

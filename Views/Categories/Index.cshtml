@@ -1,0 +1,38 @@
+@model IEnumerable<Category>
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<h1>Categories</h1>
+
+@if (TempData["Error"] != null)
+{
+    <p class="negative-warning">@TempData["Error"]</p>
+}
+
+<a asp-action="Create" class="btn-primary" style="margin-bottom:16px; display:inline-block;">+ New Category</a>
+
+<table class="tracker-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Color</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td><span class="category-badge" style="background:@c.ColorHex">@c.Name</span></td>
+                <td>@(c.Type == CategoryType.Negative ? "Negative (self-penalty)" : "Positive")</td>
+                <td><span class="color-swatch" style="background:@c.ColorHex"></span> @c.ColorHex</td>
+                <td class="actions">
+                    <a asp-action="Edit" asp-route-id="@c.Id" class="action-btn action-edit">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@c.Id" class="action-btn action-delete">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

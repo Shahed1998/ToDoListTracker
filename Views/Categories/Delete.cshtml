@@ -1,0 +1,21 @@
+@model Category
+@{
+    ViewData["Title"] = "Delete Category";
+}
+
+<h1>Delete Category?</h1>
+
+@if (ViewBag.InUse == true)
+{
+    <p class="negative-warning">This category has entries logged against it and can't be deleted. Remove those entries first, or just stop using this category going forward.</p>
+    <a asp-action="Index" class="btn-secondary">Back</a>
+}
+else
+{
+    <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn-danger">Yes, Delete</button>
+        <a asp-action="Index" class="btn-secondary">Cancel</a>
+    </form>
+}

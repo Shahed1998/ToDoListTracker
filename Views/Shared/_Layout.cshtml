@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TimeBox Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a class="brand" asp-controller="TimeBoxEntries" asp-action="Index">
+                <span class="brand-mark">TT</span>
+                <span class="brand-word">TimeBox Tracker</span>
+            </a>
+            <div class="nav-links">
+                <a asp-controller="TimeBoxEntries" asp-action="Index">Daily</a>
+                <a asp-controller="Reports" asp-action="Monthly">Monthly Report</a>
+                <a asp-controller="Categories" asp-action="Index">Categories</a>
+                <a asp-controller="TimeBoxEntries" asp-action="Create" class="nav-cta">+ New Entry</a>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

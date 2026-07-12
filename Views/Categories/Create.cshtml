@@ -1,0 +1,30 @@
+@model Category
+@{
+    ViewData["Title"] = "New Category";
+}
+
+<h1>New Category</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" placeholder="e.g. Reading, Gaming, Social Media" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Type"></label>
+        <select asp-for="Type" asp-items="Html.GetEnumSelectList<CategoryType>()" class="form-control"></select>
+        <small class="hint-text">Negative categories are for self-penalty logging (they subtract from your daily score).</small>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ColorHex">Color</label>
+        <input asp-for="ColorHex" type="color" class="form-control color-input" />
+    </div>
+
+    <button type="submit" class="btn-primary">Save Category</button>
+    <a asp-action="Index" class="btn-secondary">Cancel</a>
+</form>
