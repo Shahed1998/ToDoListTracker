@@ -4,10 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TimeBox Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%2326235e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='34' height='34' rx='9' fill='url(%23g)'/%3E%3Ctext x='17' y='23' font-family='Arial,Helvetica,sans-serif' font-size='14' font-weight='800' fill='%23ffffff' text-anchor='middle'%3ETT%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <script>
+        // Applied before paint so there's no light-mode flash on load.
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 <body>
     <header>
@@ -21,6 +30,10 @@
                 <a asp-controller="Reports" asp-action="Monthly">Monthly Report</a>
                 <a asp-controller="Categories" asp-action="Index">Categories</a>
                 <a asp-controller="TimeBoxEntries" asp-action="Create" class="nav-cta">+ New Entry</a>
+                <button type="button" id="themeToggle" class="theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+                    <span class="theme-icon-sun">&#9728;</span>
+                    <span class="theme-icon-moon">&#9789;</span>
+                </button>
             </div>
         </nav>
     </header>
@@ -29,6 +42,30 @@
             @RenderBody()
         </main>
     </div>
+
+    @if (TempData["Toast"] != null)
+    {
+        <div id="toast" class="toast">@TempData["Toast"]</div>
+    }
+
     @RenderSection("Scripts", required: false)
+
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+
+        var toast = document.getElementById('toast');
+        if (toast) {
+            requestAnimationFrame(function () { toast.classList.add('toast-show'); });
+            setTimeout(function () {
+                toast.classList.remove('toast-show');
+                setTimeout(function () { toast.remove(); }, 300);
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

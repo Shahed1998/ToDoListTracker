@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using ToDoListTracker.Models;
 
 namespace ToDoListTracker.ViewModels;
@@ -50,8 +49,7 @@ public class TimeBoxEntryFormViewModel
     [StringLength(500)]
     public string? Notes { get; set; }
 
-    public List<SelectListItem> Categories { get; set; } = new();
-    public List<Category> CategoryLookup { get; set; } = new(); // used by JS to know each category's Type/color
+    public List<Category> CategoryLookup { get; set; } = new(); // drives the chip picker and the positive/negative JS toggle
 
     public TimeSpan GetStartTimeSpan()
     {

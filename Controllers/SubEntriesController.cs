@@ -32,6 +32,7 @@ public class SubEntriesController : Controller
                 Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
             });
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Sub-task \"{taskName.Trim()}\" added";
         }
 
         return RedirectToAction("Details", "TimeBoxEntries", new { id = timeBoxEntryId });
@@ -62,6 +63,7 @@ public class SubEntriesController : Controller
         int parentId = subEntry.TimeBoxEntryId;
         _context.SubEntries.Remove(subEntry);
         await _context.SaveChangesAsync();
+        TempData["Toast"] = $"Sub-task \"{subEntry.TaskName}\" deleted";
 
         return RedirectToAction("Details", "TimeBoxEntries", new { id = parentId });
     }

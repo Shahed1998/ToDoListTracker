@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ToDoListTracker.Data;
 using ToDoListTracker.Models;
@@ -111,6 +110,7 @@ public class TimeBoxEntriesController : Controller
         {
             _context.Add(entry);
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Entry \"{entry.TaskName}\" saved";
             return RedirectToAction(nameof(Index), new { date = entry.Date.ToString("yyyy-MM-dd") });
         }
 
@@ -197,6 +197,7 @@ public class TimeBoxEntriesController : Controller
         if (ModelState.IsValid)
         {
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Entry \"{entry.TaskName}\" updated";
             return RedirectToAction(nameof(Index), new { date = entry.Date.ToString("yyyy-MM-dd") });
         }
 
@@ -222,18 +223,13 @@ public class TimeBoxEntriesController : Controller
         {
             _context.TimeBoxEntries.Remove(entry);
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Entry \"{entry.TaskName}\" deleted";
         }
         return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
     }
 
     private async Task PopulateCategories(TimeBoxEntryFormViewModel vm)
     {
-        var categories = await _context.Categories.OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
-        vm.CategoryLookup = categories;
-        vm.Categories = categories.Select(c => new SelectListItem
-        {
-            Value = c.Id.ToString(),
-            Text = (c.Type == CategoryType.Negative ? "⚠ " : "") + c.Name
-        }).ToList();
+        vm.CategoryLookup = await _context.Categories.OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
     }
 }

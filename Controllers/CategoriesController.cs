@@ -30,6 +30,7 @@ public class CategoriesController : Controller
         {
             _context.Add(category);
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Category \"{category.Name}\" created";
             return RedirectToAction(nameof(Index));
         }
         return View(category);
@@ -52,6 +53,7 @@ public class CategoriesController : Controller
         {
             _context.Update(category);
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Category \"{category.Name}\" updated";
             return RedirectToAction(nameof(Index));
         }
         return View(category);
@@ -84,6 +86,7 @@ public class CategoriesController : Controller
         {
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
+            TempData["Toast"] = $"Category \"{category.Name}\" deleted";
         }
         return RedirectToAction(nameof(Index));
     }

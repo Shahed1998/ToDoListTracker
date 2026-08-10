@@ -1,17 +1,37 @@
+[![Build](https://github.com/Shahed1998/ToDoListTracker/actions/workflows/build.yml/badge.svg)](https://github.com/Shahed1998/ToDoListTracker/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
+
 # TimeBox Tracker
 
 An ASP.NET Core MVC app for tracking your timeboxed tasks — planned hours vs. actual hours completed, per day.
 
 ## Stack
-- ASP.NET Core MVC (.NET 8)
-- EF Core + SQL Server (auto-creates the database on first run via `EnsureCreated()`, no migrations needed)
+- ASP.NET Core MVC (.NET 10)
+- EF Core + PostgreSQL (auto-creates the database on first run via `EnsureCreated()`, no migrations needed)
+- Docker + Docker Compose for one-command setup
 
 ## Run it
 
-By default `appsettings.json` points at LocalDB (`(localdb)\MSSQLLocalDB`), which ships with Visual Studio / SQL Server Express tooling on Windows. If you're using a different SQL Server instance (Docker, a named instance, Azure SQL, etc.), update the `DefaultConnection` string in `appsettings.json` first, e.g.:
+### Option A — Docker Compose (recommended)
+
+This is the easiest path and matches how you'd actually run it day to day — brings up the app *and* a Postgres database together, with data persisted in a named volume across restarts.
+
+```bash
+cd ToDoListTracker
+cp .env.example .env      # optional: edit the password inside first
+docker compose up -d --build
+```
+
+Open `http://localhost:8080`. It lands on the daily tracker for today. Seeded categories and schema are created automatically on first boot.
+
+To stop it: `docker compose down` (add `-v` to also wipe the database volume).
+
+### Option B — native `dotnet run`
+
+Requires your own local PostgreSQL server (e.g. `winget install PostgreSQL.PostgreSQL`, or Postgres.app on macOS). Update `DefaultConnection` in `appsettings.json` to match your local instance — the default assumes a `postgres`/`postgres` login on `localhost:5432`:
 
 ```json
-"DefaultConnection": "Server=localhost,1433;Database=ToDoListTrackerDb;User Id=sa;Password=YourPassword;TrustServerCertificate=True"
+"DefaultConnection": "Host=localhost;Port=5432;Database=ToDoListTrackerDb;Username=postgres;Password=postgres"
 ```
 
 Then:
@@ -22,20 +42,37 @@ dotnet restore
 dotnet run
 ```
 
-Then open the printed `https://localhost:xxxx` URL. It lands on the daily tracker for today.
+### Option C — publish to IIS (Windows)
 
-> **Note:** if you have `todotracker.db`, `todotracker.db-shm`, or `todotracker.db-wal` files lying around in the project folder, those are leftovers from an earlier SQLite-based version of this project. They're unused now that the app runs on SQL Server — safe to delete.
+The project already ships with `web.config` wired for the in-process ASP.NET Core Module, and a working file-system publish profile (`Properties/PublishProfiles/FolderProfile.pubxml`). To deploy:
+
+1. Install the [.NET 10 Hosting Bundle](https://dotnet.microsoft.com/download/dotnet/10.0) on the Windows server — this registers `aspNetCoreModuleV2`, which is the usual cause of a fresh-box 500 error if it's missing.
+2. `dotnet publish -c Release -o <publish-folder>` (or, in Visual Studio: right-click the project → **Publish** → the `FolderProfile`).
+3. Point an IIS site at `<publish-folder>`, with the app pool's **.NET CLR Version** set to **No Managed Code** (the app is self-hosted in-process; IIS just proxies to it).
+4. Update the deployed `appsettings.json`'s `DefaultConnection` to point at a PostgreSQL server the IIS box can reach.
 
 ## ⚠️ Schema changes (read this if you've run the app before)
 
 `EnsureCreated()` only builds the database schema the *first* time — it will **not** add new tables or columns to a database that already exists. This update added an `IsCompleted` column to `SubEntries` (on top of the `SubEntries` table itself from the previous update). If you've already run this app before, do one of the following:
 
-- **Easiest**: drop the existing database (`ToDoListTrackerDb`) in SQL Server Management Studio / Azure Data Studio, then run the app again — it'll be recreated with the current schema (you'll lose existing data).
+- **Easiest**: drop the existing database, then run the app again — it'll be recreated with the current schema (you'll lose existing data). With Docker Compose: `docker compose down -v` then `docker compose up -d` again.
 - **Keep your data**: switch to EF Core migrations (see below) and run `dotnet ef migrations add <Name>` + `dotnet ef database update` after each schema change instead of dropping the DB.
+
+## Deploying so you can use it every day
+
+Once this becomes your actual daily-entry tool rather than something you spin up occasionally, you want it running somewhere always-on:
+
+- **Option A — an always-on machine you already have** (a spare PC, NAS, or Raspberry Pi on your home network). `docker compose up -d` (the `restart: unless-stopped` policy is already set in `docker-compose.yml`, so it survives reboots). Reach it at `http://<machine-ip>:8080` from your phone/laptop over wifi.
+- **Option B — a small cloud VPS** (e.g. a ~$5/mo Hetzner, DigitalOcean, or Lightsail box) if you want access from anywhere, not just your home network. Install Docker, `git clone` this repo, `docker compose up -d`, and open port 8080 in the firewall. If you want a real domain with automatic HTTPS instead of a bare IP:port, put a lightweight reverse proxy like [Caddy](https://caddyserver.com/) in front — a single extra `caddy` service in `docker-compose.yml` pointed at `web:8080` is all that's needed once you have a domain pointed at the box.
+- **Back up your data**: the Postgres volume alone isn't a backup. Run this periodically (or cron it):
+  ```bash
+  docker compose exec db pg_dump -U todotracker todotrackerdb > backup.sql
+  ```
 
 ## What it does
 
-- **Daily view** (`/`): entries for a selected date, with a planned/achieved/penalty/net-completion summary and date navigation. If you hit 100% net completion for the day, confetti and balloons celebrate for a few seconds.
+- **Daily view** (`/`): entries for a selected date, with a planned/achieved/penalty/net-completion summary (shown as a circular progress ring) and date navigation. If you hit 100% net completion for the day, confetti and balloons celebrate for a few seconds. Keyboard shortcuts: `←`/`→` to change day, `T` for today, `N` for a new entry.
+- **Dark mode**: toggle via the sun/moon button in the navbar; your choice is remembered per-browser.
 - **Categories**: manage your own categories (Study, Work, Personal Time, SCEcommerz, etc. come pre-seeded). Each category is either:
   - **Positive** — has a planned time slot and counts toward your daily completion %.
   - **Negative** — for self-penalty logging (e.g. Procrastination, Oversleeping — pre-seeded, but you can rename/add your own). These have no planned slot, just "hours spent," and subtract directly from your day's net score.

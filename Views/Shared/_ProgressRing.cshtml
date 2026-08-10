@@ -1,0 +1,20 @@
+@model ToDoListTracker.ViewModels.ProgressRingViewModel
+@{
+    double pct = Math.Max(0, Math.Min(100, Model.Percentage));
+    const double radius = 46;
+    const double circumference = 2 * Math.PI * radius;
+    double offset = circumference - (pct / 100) * circumference;
+    string ringClass = pct >= 80 ? "ring-success" : pct > 0 ? "ring-warning" : "ring-danger";
+}
+<div class="progress-ring-wrap">
+    <svg class="progress-ring" width="112" height="112" viewBox="0 0 112 112">
+        <circle class="ring-track" cx="56" cy="56" r="@radius"></circle>
+        <circle class="ring-fill @ringClass" cx="56" cy="56" r="@radius"
+                stroke-dasharray="@circumference.ToString("0.##")"
+                stroke-dashoffset="@offset.ToString("0.##")"></circle>
+    </svg>
+    <div class="progress-ring-label">
+        <div class="ring-pct">@Model.Percentage.ToString("0.#")%</div>
+        <div class="ring-caption">@Model.Caption</div>
+    </div>
+</div>

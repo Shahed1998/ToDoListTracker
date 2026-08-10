@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-todotrackerdb}
+      POSTGRES_USER: ${POSTGRES_USER:-todotracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe123!}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-todotracker} -d ${POSTGRES_DB:-todotrackerdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-todotrackerdb};Username=${POSTGRES_USER:-todotracker};Password=${POSTGRES_PASSWORD:-ChangeMe123!}"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

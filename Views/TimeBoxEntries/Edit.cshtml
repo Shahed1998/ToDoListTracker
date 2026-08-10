@@ -15,10 +15,23 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="CategoryId">Category</label>
-        <select asp-for="CategoryId" asp-items="Model.Categories" id="categorySelect" class="form-control">
-            <option value="">-- choose a category --</option>
-        </select>
+        <label>Category</label>
+        <div class="category-chip-picker">
+            @{ bool isFirstChip = true; }
+            @foreach (var c in Model.CategoryLookup)
+            {
+                <label class="category-chip @(c.Id == Model.CategoryId ? "chip-selected" : "")" style="--chip-color:@c.ColorHex">
+                    <input type="radio" name="CategoryId" value="@c.Id" data-type="@c.Type" checked="@(c.Id == Model.CategoryId)" required="@isFirstChip" />
+                    <span class="chip-dot"></span>
+                    @c.Name
+                    @if (c.Type == CategoryType.Negative)
+                    {
+                        <span class="chip-warn">&#9888;</span>
+                    }
+                </label>
+                isFirstChip = false;
+            }
+        </div>
         <span asp-validation-for="CategoryId" class="text-danger"></span>
     </div>
 
@@ -93,21 +106,20 @@
 
 @section Scripts {
     <script>
-        const categoryTypes = {
-            @foreach (var c in Model.CategoryLookup)
-            {
-                @: @(c.Id): "@c.Type",
-            }
-        };
-
         function toggleFields() {
-            const select = document.getElementById('categorySelect');
-            const isNegative = categoryTypes[select.value] === "Negative";
+            const checked = document.querySelector('input[name="CategoryId"]:checked');
+            const isNegative = checked && checked.dataset.type === "Negative";
             document.getElementById('positiveFields').style.display = isNegative ? 'none' : 'block';
             document.getElementById('negativeFields').style.display = isNegative ? 'block' : 'none';
         }
 
-        document.getElementById('categorySelect').addEventListener('change', toggleFields);
+        document.querySelectorAll('input[name="CategoryId"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                document.querySelectorAll('.category-chip').forEach(function (chip) { chip.classList.remove('chip-selected'); });
+                radio.closest('.category-chip').classList.add('chip-selected');
+                toggleFields();
+            });
+        });
         toggleFields();
     </script>
 }

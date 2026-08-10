@@ -17,8 +17,8 @@
 </div>
 
 <div class="summary-card">
+    <partial name="_ProgressRing" model="@(new ProgressRingViewModel { Percentage = Model.AverageCompletion, Caption = "Avg. Completion" })" />
     <div><span class="label">Days Logged</span><span class="value">@Model.DaysLoggedCount</span></div>
-    <div><span class="label">Avg. Completion</span><span class="value">@Model.AverageCompletion%</span></div>
     <div><span class="label">Good Days (&ge;@MonthlyReportViewModel.ConsistencyThreshold%)</span><span class="value">@Model.DaysAtOrAboveThreshold</span></div>
     <div><span class="label">Current Streak</span><span class="value">@Model.CurrentStreak 🔥</span></div>
     <div><span class="label">Best Streak</span><span class="value">@Model.BestStreak</span></div>

@@ -19,6 +19,12 @@ public class AppDbContext : DbContext
             .Property(e => e.Status)
             .HasConversion<string>();
 
+        // Date only ever represents a calendar date (see DataType.Date on the model), so map it to
+        // Postgres's `date` type - avoids Npgsql's Kind=Utc requirement for `timestamp with time zone`.
+        modelBuilder.Entity<TimeBoxEntry>()
+            .Property(e => e.Date)
+            .HasColumnType("date");
+
         modelBuilder.Entity<Category>()
             .Property(c => c.Type)
             .HasConversion<string>();
