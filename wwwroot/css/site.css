@@ -280,7 +280,9 @@ h2.section-title { font-size: 1.15rem; font-weight: 700; margin: 32px 0 14px; le
     letter-spacing: 0.01em;
 }
 .color-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; margin-right: 6px; border: 1px solid var(--border); }
-.color-input { height: 44px; padding: 4px; cursor: pointer; }
+.color-picker-row { display: flex; align-items: center; gap: 12px; }
+.color-swatch-input { flex-shrink: 0; width: 48px; height: 48px; padding: 3px; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card-bg); }
+.color-hex-input { max-width: 140px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: lowercase; }
 .hint-text { display: block; color: var(--text-muted); font-size: 0.8rem; margin-top: 6px; }
 
 /* ---------- Negative entries ---------- */
@@ -384,6 +386,9 @@ label { display: block; font-weight: 600; margin-bottom: 7px; font-size: 0.87rem
 :root[data-theme="dark"] .action-details:hover { background: #2d3348; }
 :root[data-theme="dark"] .status-NotStarted { background: #232838; color: #a7adbd; }
 :root[data-theme="dark"] .status-InProgress { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+/* --primary and its gradient partner (#818cf8) are the same color in dark mode, which flattens
+   .progress-fill's gradient into a solid fill - use a distinct start color here instead. */
+:root[data-theme="dark"] .progress-fill { background: linear-gradient(90deg, #6366f1, var(--primary)); }
 :root[data-theme="dark"] .btn-secondary:hover { border-color: #3a4055; }
 :root[data-theme="dark"] label { color: #cbd5e1; }
 :root[data-theme="dark"] .row-negative { background: #1f171a; }

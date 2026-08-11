@@ -21,15 +21,14 @@
         <dd>@Model.EffectiveActualHours.ToString("0.##")h</dd>
         <dt>Completion</dt>
         <dd>@Model.CompletionPercentage%</dd>
+        <dt>Status</dt>
+        <dd><span class="status-badge status-@Model.Status">@Model.Status</span></dd>
     }
     else
     {
         <dt>Hours Spent</dt>
         <dd class="penalty-value">-@Model.ActualHours.ToString("0.##")h</dd>
     }
-
-    <dt>Status</dt>
-    <dd><span class="status-badge status-@Model.Status">@Model.Status</span></dd>
 
     <dt>Notes</dt>
     <dd>@(Model.Notes ?? "-")</dd>

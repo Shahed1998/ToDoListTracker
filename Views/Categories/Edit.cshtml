@@ -23,9 +23,26 @@
 
     <div class="form-group">
         <label asp-for="ColorHex">Color</label>
-        <input asp-for="ColorHex" type="color" class="form-control color-input" />
+        <div class="color-picker-row">
+            <input type="color" id="colorSwatch" class="color-swatch-input" value="@Model.ColorHex" aria-label="Pick a color" />
+            <input asp-for="ColorHex" class="form-control color-hex-input" maxlength="7" placeholder="#4f46e5" />
+        </div>
+        <span asp-validation-for="ColorHex" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn-primary">Save Category</button>
     <a asp-action="Index" class="btn-secondary">Cancel</a>
 </form>
+
+@section Scripts {
+    <script>
+        (function () {
+            var swatch = document.getElementById('colorSwatch');
+            var hexInput = document.getElementById('ColorHex');
+            swatch.addEventListener('input', function () { hexInput.value = swatch.value; });
+            hexInput.addEventListener('input', function () {
+                if (/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) { swatch.value = hexInput.value; }
+            });
+        })();
+    </script>
+}

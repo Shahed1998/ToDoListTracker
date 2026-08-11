@@ -25,6 +25,10 @@ public class AppDbContext : DbContext
             .Property(e => e.Date)
             .HasColumnType("date");
 
+        // Date is the primary filter for both the daily view and the monthly report loop.
+        modelBuilder.Entity<TimeBoxEntry>()
+            .HasIndex(e => e.Date);
+
         modelBuilder.Entity<Category>()
             .Property(c => c.Type)
             .HasConversion<string>();

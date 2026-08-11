@@ -84,7 +84,16 @@ else
                             @:-
                         }
                     </td>
-                    <td data-label="Status"><span class="status-badge status-@entry.Status">@entry.Status</span></td>
+                    <td data-label="Status">
+                        @if (isNegative)
+                        {
+                            @:-
+                        }
+                        else
+                        {
+                            <span class="status-badge status-@entry.Status">@entry.Status</span>
+                        }
+                    </td>
                     <td class="actions">
                         <a asp-action="Edit" asp-route-id="@entry.Id" class="action-btn action-edit">Edit</a>
                         <a asp-action="Details" asp-route-id="@entry.Id" class="action-btn action-details">Details</a>

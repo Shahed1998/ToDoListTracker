@@ -21,6 +21,7 @@ public class TimeBoxEntriesController : Controller
         var selectedDate = (date ?? DateTime.Today).Date;
 
         var entries = await _context.TimeBoxEntries
+            .AsNoTracking()
             .Include(e => e.Category)
             .Include(e => e.SubEntries)
             .Where(e => e.Date == selectedDate)
@@ -50,6 +51,7 @@ public class TimeBoxEntriesController : Controller
     {
         if (id == null) return NotFound();
         var entry = await _context.TimeBoxEntries
+            .AsNoTracking()
             .Include(e => e.Category)
             .Include(e => e.SubEntries)
             .FirstOrDefaultAsync(e => e.Id == id);
@@ -121,7 +123,7 @@ public class TimeBoxEntriesController : Controller
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
-        var entry = await _context.TimeBoxEntries.Include(e => e.Category).FirstOrDefaultAsync(e => e.Id == id);
+        var entry = await _context.TimeBoxEntries.AsNoTracking().Include(e => e.Category).FirstOrDefaultAsync(e => e.Id == id);
         if (entry == null) return NotFound();
 
         var vm = new TimeBoxEntryFormViewModel
@@ -208,7 +210,7 @@ public class TimeBoxEntriesController : Controller
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
-        var entry = await _context.TimeBoxEntries.Include(e => e.Category).FirstOrDefaultAsync(e => e.Id == id);
+        var entry = await _context.TimeBoxEntries.AsNoTracking().Include(e => e.Category).FirstOrDefaultAsync(e => e.Id == id);
         if (entry == null) return NotFound();
         return View(entry);
     }
@@ -230,6 +232,6 @@ public class TimeBoxEntriesController : Controller
 
     private async Task PopulateCategories(TimeBoxEntryFormViewModel vm)
     {
-        vm.CategoryLookup = await _context.Categories.OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
+        vm.CategoryLookup = await _context.Categories.AsNoTracking().OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
     }
 }

@@ -16,7 +16,7 @@ public class CategoriesController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var categories = await _context.Categories.OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
+        var categories = await _context.Categories.AsNoTracking().OrderBy(c => c.Type).ThenBy(c => c.Name).ToListAsync();
         return View(categories);
     }
 

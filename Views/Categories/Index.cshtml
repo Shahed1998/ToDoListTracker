@@ -5,11 +5,6 @@
 
 <h1>Categories</h1>
 
-@if (TempData["Error"] != null)
-{
-    <p class="negative-warning">@TempData["Error"]</p>
-}
-
 <a asp-action="Create" class="btn-primary" style="margin-bottom:16px; display:inline-block;">+ New Category</a>
 
 <table class="tracker-table">

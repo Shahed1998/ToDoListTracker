@@ -26,6 +26,7 @@ public class ReportsController : Controller
         var lastDay = new DateTime(y, m, daysInMonth);
 
         var entries = await _context.TimeBoxEntries
+            .AsNoTracking()
             .Include(e => e.Category)
             .Include(e => e.SubEntries)
             .Where(e => e.Date >= firstDay && e.Date <= lastDay)
@@ -83,14 +84,18 @@ public class ReportsController : Controller
         vm.BestStreak = best;
 
         vm.CategoryBreakdown = entries
-            .GroupBy(e => e.Category!)
-            .Select(g => new CategoryBreakdownItem
+            .GroupBy(e => e.CategoryId)
+            .Select(g =>
             {
-                Name = g.Key.Name,
-                ColorHex = g.Key.ColorHex,
-                IsNegative = g.Key.Type == CategoryType.Negative,
-                TotalHours = Math.Round(g.Sum(e => e.EffectiveActualHours), 2),
-                EntryCount = g.Count()
+                var category = g.First().Category!;
+                return new CategoryBreakdownItem
+                {
+                    Name = category.Name,
+                    ColorHex = category.ColorHex,
+                    IsNegative = category.Type == CategoryType.Negative,
+                    TotalHours = Math.Round(g.Sum(e => e.EffectiveActualHours), 2),
+                    EntryCount = g.Count()
+                };
             })
             .OrderByDescending(c => c.TotalHours)
             .ToList();

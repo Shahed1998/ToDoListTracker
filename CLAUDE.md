@@ -27,7 +27,7 @@ dotnet ef database update
 
 (`dotnet-ef` is pinned via `dotnet-tools.json` as a local tool — restore with `dotnet tool restore` if it's not on PATH.)
 
-The connection string lives in `appsettings.json` (`ConnectionStrings:DefaultConnection`) and currently points at a local SQL Server Express instance.
+The connection string lives in `appsettings.json` (`ConnectionStrings:DefaultConnection`) and currently points at a local PostgreSQL instance (via `Npgsql.EntityFrameworkCore.PostgreSQL`).
 
 ## Architecture
 

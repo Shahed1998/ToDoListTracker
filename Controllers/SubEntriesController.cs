@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using ToDoListTracker.Data;
 using ToDoListTracker.Models;
@@ -16,24 +17,34 @@ public class SubEntriesController : Controller
     // POST: SubEntries/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(int timeBoxEntryId, string taskName, double actualHours, bool isCompleted, string? notes)
+    public async Task<IActionResult> Create(
+        int timeBoxEntryId,
+        [Required(ErrorMessage = "Task name is required"), StringLength(150)] string taskName,
+        [Range(0, 24)] double actualHours,
+        bool isCompleted,
+        [StringLength(300)] string? notes)
     {
         var parent = await _context.TimeBoxEntries.FindAsync(timeBoxEntryId);
         if (parent == null) return NotFound();
 
-        if (!string.IsNullOrWhiteSpace(taskName))
+        if (!ModelState.IsValid)
         {
-            _context.SubEntries.Add(new SubEntry
-            {
-                TimeBoxEntryId = timeBoxEntryId,
-                TaskName = taskName.Trim(),
-                ActualHours = actualHours,
-                IsCompleted = isCompleted,
-                Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
-            });
-            await _context.SaveChangesAsync();
-            TempData["Toast"] = $"Sub-task \"{taskName.Trim()}\" added";
+            TempData["Error"] = "Couldn't add sub-task: " + string.Join(" ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+            return RedirectToAction("Details", "TimeBoxEntries", new { id = timeBoxEntryId });
         }
+
+        _context.SubEntries.Add(new SubEntry
+        {
+            TimeBoxEntryId = timeBoxEntryId,
+            TaskName = taskName.Trim(),
+            ActualHours = actualHours,
+            IsCompleted = isCompleted,
+            Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
+        });
+        await _context.SaveChangesAsync();
+        TempData["Toast"] = $"Sub-task \"{taskName.Trim()}\" added";
 
         return RedirectToAction("Details", "TimeBoxEntries", new { id = timeBoxEntryId });
     }
